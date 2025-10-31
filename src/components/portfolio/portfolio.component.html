@@ -1,0 +1,238 @@
+@if (isLoading()) {
+  <div class="p-8 animate-pulse">
+    <!-- Header Skeleton -->
+    <div class="flex justify-between items-start mb-6">
+      <div>
+        <div class="h-9 bg-secondary rounded w-64 mb-2"></div>
+        <div class="h-5 bg-secondary rounded w-96"></div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="h-10 bg-secondary rounded-md w-32"></div>
+        <div class="h-10 bg-secondary rounded-md w-40"></div>
+      </div>
+    </div>
+    <!-- Client Details Skeleton -->
+    <div class="bg-secondary-light p-4 rounded-lg border border-secondary mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        @for (_ of [1,2,3,4]; track $index) {
+          <div>
+            <div class="h-4 bg-secondary rounded w-24 mb-2"></div>
+            <div class="h-6 bg-secondary rounded w-32"></div>
+          </div>
+        }
+      </div>
+    </div>
+    <!-- Main Content Skeleton -->
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+      <div class="lg:col-span-3 space-y-8">
+        <div class="bg-secondary-light p-6 rounded-lg border border-secondary">
+          <div class="h-6 bg-secondary rounded w-1/3 mb-4"></div>
+          <div class="h-80 bg-secondary rounded-md"></div>
+        </div>
+        <div class="bg-secondary-light p-6 rounded-lg border border-secondary">
+          <div class="h-6 bg-secondary rounded w-1/4 mb-4"></div>
+          @for (_ of [1,2,3,4]; track $index) {
+            <div class="h-12 bg-secondary rounded-md mb-2"></div>
+          }
+        </div>
+      </div>
+      <div class="lg:col-span-2 space-y-8">
+        <div class="bg-secondary-light p-6 rounded-lg border border-secondary">
+           <div class="h-6 bg-secondary rounded w-1/2 mb-4"></div>
+           <div class="h-48 bg-secondary rounded-full mx-auto w-48"></div>
+        </div>
+        <div class="bg-secondary-light p-6 rounded-lg border border-secondary">
+          <div class="h-6 bg-secondary rounded w-1/3 mb-4"></div>
+           @for (_ of [1,2,3,4,5]; track $index) {
+            <div class="h-8 bg-secondary rounded-md mb-2"></div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+} @else if (!selectedClient()) {
+  <div class="p-8 h-full flex flex-col items-center justify-center text-center">
+    <div class="w-20 h-20 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-label"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20V16"/></svg>
+    </div>
+    <h2 class="text-3xl font-bold text-foreground">Carteira do Cliente</h2>
+    <p class="text-label mt-2 max-w-md">Busque e selecione um cliente para visualizar seu portfólio consolidado, posições e performance.</p>
+    <div class="relative w-full max-w-lg mt-8">
+      <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-label" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg>
+      </div>
+      <input 
+        type="text" 
+        placeholder="Buscar cliente por nome ou ID..."
+        class="w-full pl-12 pr-4 py-3 bg-secondary-light border-2 border-secondary rounded-full text-lg focus:ring-accent focus:border-accent"
+        [value]="clientSearchTerm()" 
+        (input)="clientSearchTerm.set($any($event.target).value)">
+      @if (filteredClients().length > 0) {
+        <ul class="absolute z-10 w-full bg-secondary-light border border-secondary rounded-lg mt-2 shadow-lg max-h-60 overflow-y-auto text-left">
+          @for (client of filteredClients(); track client.account) {
+            <li (click)="selectClient(client)" class="px-4 py-3 hover:bg-secondary cursor-pointer transition-colors">
+              <p class="font-medium text-foreground">{{ client.name }}</p>
+              <p class="text-sm text-label">Conta: {{ client.account }}</p>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+} @else {
+  <div class="p-8">
+    <!-- Header -->
+    <div class="flex justify-between items-start mb-6">
+      <div>
+        <h2 class="text-3xl font-bold text-foreground">{{ selectedClient()?.name }}</h2>
+        <p class="text-label mt-1">Visão consolidada do portfólio, performance e movimentações.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button (click)="clearClient()" class="px-4 py-2 bg-secondary-light border border-secondary text-foreground text-sm font-medium rounded-md hover:bg-secondary transition-colors">
+          Trocar Cliente
+        </button>
+        <button (click)="createNewOrderForClient()" class="px-4 py-2 bg-accent text-white text-sm font-medium rounded-md hover:brightness-95 active:brightness-90 transition-all flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+          Criar Nova Ordem
+        </button>
+      </div>
+    </div>
+    
+    <!-- Client Details Panel -->
+    <div class="bg-secondary-light p-4 rounded-lg border border-secondary mb-8">
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-4 gap-y-6">
+        <div><p class="text-xs text-label">Início do Portfólio</p><p class="font-semibold text-foreground">{{ selectedClient()?.portfolioStartDate }}</p></div>
+        <div><p class="text-xs text-label">Carteira Alocada</p><p class="font-semibold text-foreground">{{ selectedClient()?.allocatedPortfolio }}</p></div>
+        <div><p class="text-xs text-label">Taxa de Admin.</p><p class="font-semibold text-foreground">{{ selectedClient()?.adminFee }}</p></div>
+        <div><p class="text-xs text-label">Taxa de Perf.</p><p class="font-semibold text-foreground">{{ selectedClient()?.performanceFee }}</p></div>
+        <div>
+          <button (click)="isDetailsExpanded.set(!isDetailsExpanded())" class="text-sm text-label font-medium hover:text-foreground flex items-center gap-1">
+            Ver Detalhes
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="transition-transform" [class]="isDetailsExpanded() ? 'rotate-180' : ''"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+        </div>
+      </div>
+      @if(isDetailsExpanded()) {
+        <div class="mt-4 pt-4 border-t border-secondary grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+           <div><p class="text-xs text-label">Perfil de Risco</p><p class="font-semibold text-foreground">{{ selectedClient()?.riskProfile }}</p></div>
+           <div><p class="text-xs text-label">Assessor</p><p class="font-semibold text-foreground">{{ selectedClient()?.assessor }}</p></div>
+           <div><p class="text-xs text-label">Data de Registro</p><p class="font-semibold text-foreground">{{ selectedClient()?.registrationDate }}</p></div>
+        </div>
+      }
+    </div>
+    
+    <!-- Top Panel: Summary & Allocation -->
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-8">
+      <div class="lg:col-span-3">
+        <div class="bg-secondary-light p-6 rounded-lg border border-secondary h-full">
+          <h3 class="text-lg font-bold text-foreground mb-4">Patrimônio por Categoria</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div><p class="text-label text-sm">Renda Fixa</p><p class="text-2xl font-bold text-foreground mt-1">R$ {{ patrimonioSummary()['Renda Fixa'] | number:'1.2-2' }}</p></div>
+              <div><p class="text-label text-sm">Renda Variável</p><p class="text-2xl font-bold text-foreground mt-1">R$ {{ patrimonioSummary()['Renda Variável'] | number:'1.2-2' }}</p></div>
+              <div><p class="text-label text-sm">Fundos</p><p class="text-2xl font-bold text-foreground mt-1">R$ {{ patrimonioSummary()['Fundos'] | number:'1.2-2' }}</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="lg:col-span-2 bg-secondary-light p-5 rounded-lg border border-secondary">
+        <h3 class="text-lg font-bold text-foreground mb-2">Alocação Geral</h3>
+        <div class="h-48 relative"><canvas #allocationChartCanvas></canvas></div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+      <div class="lg:col-span-3">
+        @if (selectedAllocationCategory(); as category) {
+          <div class="bg-secondary-light p-6 rounded-lg border border-secondary mb-8">
+            <h3 class="text-lg font-bold text-foreground">Detalhamento: {{category}}</h3>
+            <div class="h-80 mt-4 relative"><canvas #breakdownChartCanvas></canvas></div>
+          </div>
+        }
+        <!-- Positions Table -->
+        <div class="bg-secondary-light p-6 rounded-lg border border-secondary">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-foreground">Posições</h3>
+            <div class="flex items-center gap-1 bg-background border border-secondary p-1 rounded-lg">
+                <button (click)="activeBrokerageFilter.set('Consolidado')" class="px-2 py-1 text-xs font-medium rounded" [class]="activeBrokerageFilter() === 'Consolidado' ? 'bg-accent text-white' : 'hover:bg-secondary'">Consolidado</button>
+                <button (click)="activeBrokerageFilter.set('XP')" class="px-2 py-1 text-xs font-medium rounded" [class]="activeBrokerageFilter() === 'XP' ? 'bg-accent text-white' : 'hover:bg-secondary'">XP</button>
+                <button (click)="activeBrokerageFilter.set('BTG Pactual')" class="px-2 py-1 text-xs font-medium rounded" [class]="activeBrokerageFilter() === 'BTG Pactual' ? 'bg-accent text-white' : 'hover:bg-secondary'">BTG</button>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+             <table class="w-full text-left text-sm">
+                <thead class="border-b border-secondary"><tr class="text-xs text-label uppercase">
+                    <th class="py-2 px-3 w-10"></th>
+                    <th (click)="handleSort('asset')" class="py-2 px-3 font-medium cursor-pointer">Ativo</th>
+                    <th (click)="handleSort('corretora')" class="py-2 px-3 font-medium cursor-pointer">Corretora</th>
+                    <th (click)="handleSort('rentabilidade')" class="py-2 px-3 font-medium cursor-pointer text-right">Rentab.</th>
+                    <th (click)="handleSort('valorTotal')" class="py-2 px-3 font-medium cursor-pointer text-right">Valor Total</th>
+                    <th class="py-2 px-3 font-medium text-center">Risco</th>
+                </tr></thead>
+                <tbody>
+                  @for (pos of filteredPositions(); track pos.asset.id) {
+                    <tr class="border-b border-secondary hover:bg-background">
+                      <td class="p-3 text-center">
+                        <button (click)="toggleExpand(pos.asset.id)" class="p-1 rounded-full hover:bg-secondary">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="transition-transform" [class]="expandedPositionId() === pos.asset.id ? 'rotate-180' : ''"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </button>
+                      </td>
+                      <td class="p-3 font-medium">{{ pos.asset.name }}</td>
+                      <td class="p-3 text-label">{{ pos.corretora }}</td>
+                      <td class="p-3 text-right" [class]="pos.rentabilidade >= 0 ? 'text-status-success' : 'text-status-error'">{{ pos.rentabilidade | number:'1.2-2' }}%</td>
+                      <td class="p-3 font-semibold text-right">R$ {{ pos.valorTotal | number:'1.2-2' }}</td>
+                      <td class="p-3 text-center"><span class="px-2 py-0.5 rounded-md text-xs font-semibold" [class]="getRiskBadgeClass(pos.asset.risk)">{{ pos.asset.risk }}</span></td>
+                    </tr>
+                    @if (expandedPositionId() === pos.asset.id) {
+                      <tr class="bg-background">
+                        <td colspan="6" class="p-3">
+                          <div class="grid grid-cols-6 gap-4 text-xs">
+                            <div><span class="text-label">Estratégia:</span><br><span class="font-medium">{{pos.estrategia}}</span></div>
+                            <div><span class="text-label">Preço Entrada:</span><br><span class="font-medium">R$ {{pos.precoEntrada | number:'1.2-2'}}</span></div>
+                            <div><span class="text-label">Preço Atual:</span><br><span class="font-medium">R$ {{pos.precoAtual | number:'1.2-2'}}</span></div>
+                            <div><span class="text-label">Quantidade:</span><br><span class="font-medium">{{pos.quantidade}}</span></div>
+                            <div><span class="text-label">Vencimento:</span><br><span class="font-medium">{{ pos.asset.expiry || 'N/A' }}</span></div>
+                            <div><span class="text-label">Valor Mín.:</span><br><span class="font-medium">R$ {{ pos.asset.minAmount | number:'1.2-2' }}</span></div>
+                          </div>
+                        </td>
+                      </tr>
+                    }
+                  } @empty {
+                    <tr><td colspan="6" class="text-center p-8 text-label">Nenhuma posição encontrada.</td></tr>
+                  }
+                </tbody>
+             </table>
+          </div>
+        </div>
+      </div>
+      <!-- Right Column -->
+      <div class="lg:col-span-2 space-y-8">
+        <!-- Performance Chart -->
+        <div class="bg-secondary-light p-6 rounded-lg border border-secondary">
+          <h3 class="text-lg font-bold text-foreground">Rentabilidade (12M)</h3>
+          <div class="h-64 mt-4 relative"><canvas #performanceChartCanvas></canvas></div>
+        </div>
+        <!-- Movements -->
+        <div class="bg-secondary-light p-6 rounded-lg border border-secondary">
+          <h3 class="text-lg font-bold text-foreground mb-4">Movimentações Recentes</h3>
+          <div class="space-y-3 max-h-72 overflow-y-auto pr-2">
+            @for (move of filteredMovements(); track $index) {
+              <div class="flex justify-between items-center text-sm">
+                <div>
+                  <p class="font-medium text-foreground">{{ move.description }}</p>
+                  <p class="text-xs text-label">{{ move.type }} &bull; {{ move.date | date:'dd/MM/yy' }}</p>
+                </div>
+                <p class="font-semibold" [class]="move.type === 'Aplicação' || move.type === 'Depósito' ? 'text-status-success' : 'text-status-error'">{{ move.type === 'Aplicação' || move.type === 'Depósito' ? '+' : '-' }} R$ {{ move.value | number:'1.2-2' }}</p>
+              </div>
+            } @empty {
+              <div class="text-center p-8 text-label">Nenhuma movimentação no período.</div>
+            }
+          </div>
+          <div class="mt-4 pt-4 border-t border-secondary text-sm space-y-2">
+            <div class="flex justify-between items-center"><span class="text-label">Total Entradas:</span><span class="font-bold text-status-success">+ R$ {{ movementSummary().entradas | number:'1.2-2' }}</span></div>
+            <div class="flex justify-between items-center"><span class="text-label">Total Saídas:</span><span class="font-bold text-status-error">- R$ {{ movementSummary().saidas | number:'1.2-2' }}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

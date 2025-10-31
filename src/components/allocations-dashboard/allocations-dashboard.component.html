@@ -1,0 +1,152 @@
+<div class="p-8">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h2 class="text-3xl font-bold text-foreground">Central de Alocações</h2>
+      <p class="text-label mt-1">Gerencie, crie e acompanhe as ordens de investimento.</p>
+    </div>
+    <div class="flex items-center space-x-3">
+      <button 
+        routerLink="/allocations/new"
+        class="px-4 py-2 bg-secondary-light border border-secondary text-foreground text-sm font-medium rounded-md hover:bg-secondary transition-colors flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+        Nova Ordem
+      </button>
+    </div>
+  </div>
+
+  <!-- Status Cards -->
+  <div class="bg-secondary-light rounded-lg border border-secondary mb-8">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+       @for (card of statusCards(); track card.id; let i = $index) {
+        <button 
+          (click)="selectStatus(card.id)"
+          class="p-4 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent z-10"
+          [class]="i < 5 ? 'border-r border-secondary' : ''"
+          [class]="activeStatusFilter() === card.id ? 'bg-secondary' : 'hover:bg-secondary/50'">
+          <div class="flex items-center gap-2 text-label text-sm font-medium">
+            @switch (card.icon) {
+                @case ('trend') { <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg> }
+                @case ('pending') { <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> }
+                @case ('treatment') { <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6"/><path d="M2.5 22v-6h6"/><path d="M2 11.5a10 10 0 0 1 18.8-4.3L22 2.5"/><path d="M22 12.5a10 10 0 0 1-18.8 4.3L2 21.5"/></svg> }
+                @case ('executed') { <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"/></svg> }
+                @case ('rejected') { <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg> }
+                @case ('closed') { <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> }
+            }
+            <span>{{ card.label }}</span>
+          </div>
+           <div class="flex items-center mt-2">
+                <div class="w-1 h-6 rounded-full mr-3" [class]="card.color"></div>
+                <span class="text-4xl font-bold text-foreground">{{ statusCounts()[card.id] || 0 }}</span>
+            </div>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Orders Table -->
+  <div class="bg-secondary-light p-6 rounded-lg border border-secondary">
+    <div class="flex justify-between items-center mb-5">
+      <h3 class="text-lg font-bold text-foreground">Todas as Ordens</h3>
+      <div class="relative w-full max-w-sm">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-label" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg>
+        </div>
+        <input 
+          type="text" 
+          placeholder="Buscar por cliente ou ID..."
+          class="w-full pl-10 pr-4 py-2 bg-secondary-light border border-secondary rounded-md text-sm focus:ring-accent focus:border-accent placeholder:text-label"
+          (input)="updateSearch($event)">
+      </div>
+    </div>
+    
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead class="border-b border-secondary">
+          <tr class="text-xs text-label uppercase">
+            <th class="py-3 px-4 font-medium w-12"></th>
+            <th class="py-3 px-4 font-medium">ID Ordem</th>
+            <th class="py-3 px-4 font-medium">Cliente</th>
+            <th class="py-3 px-4 font-medium">Hub</th>
+            <th class="py-3 px-4 font-medium">Assunto</th>
+            <th class="py-3 px-4 font-medium">Tipo</th>
+            <th class="py-3 px-4 font-medium">Status</th>
+            <th class="py-3 px-4 font-medium">Data</th>
+            <th class="py-3 px-4 font-medium">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (isLoading()) {
+            @for (_ of [1,2,3,4,5,6]; track $index) {
+              <tr class="animate-pulse">
+                <td class="py-4 px-4"><div class="h-6 w-6 bg-secondary rounded-full"></div></td>
+                <td class="py-4 px-4"><div class="h-4 bg-secondary rounded w-24"></div></td>
+                <td class="py-4 px-4"><div class="h-4 bg-secondary rounded w-40"></div></td>
+                <td class="py-4 px-4"><div class="h-4 bg-secondary rounded w-20"></div></td>
+                <td class="py-4 px-4"><div class="h-4 bg-secondary rounded w-32"></div></td>
+                <td class="py-4 px-4"><div class="h-4 bg-secondary rounded w-24"></div></td>
+                <td class="py-4 px-4"><div class="h-6 bg-secondary rounded-full w-28"></div></td>
+                <td class="py-4 px-4"><div class="h-4 bg-secondary rounded w-32"></div></td>
+                <td class="py-4 px-4"><div class="h-6 w-6 bg-secondary rounded-full"></div></td>
+              </tr>
+            }
+          } @else {
+            @if (filteredOrders().length === 0) {
+              <tr>
+                <td colspan="9" class="text-center py-16">
+                  <div class="flex flex-col items-center text-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <h3 class="text-lg font-medium text-foreground">Nenhuma ordem encontrada</h3>
+                    <p>Tente ajustar seus termos de busca ou filtros.</p>
+                  </div>
+                </td>
+              </tr>
+            } @else {
+              @for (order of filteredOrders(); track order.id) {
+                <tr 
+                  (click)="navigateToOrder(order.id)"
+                  class="border-b border-secondary hover:bg-background transition-colors cursor-pointer">
+                  <td class="py-3 px-4">
+                    <button (click)="$event.stopPropagation(); toggleFavorite(order.id)" class="text-label hover:text-yellow-500 transition-colors p-1 -m-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"
+                        [class]="order.isFavorite ? 'fill-yellow-400 text-yellow-500' : 'fill-transparent'">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z" />
+                      </svg>
+                    </button>
+                  </td>
+                  <td class="py-3 px-4 text-foreground">{{ order.id }}</td>
+                  <td class="py-3 px-4 font-medium text-foreground">{{ order.client.name }}</td>
+                  <td class="py-3 px-4 text-foreground">{{ order.hub }}</td>
+                  <td class="py-3 px-4 text-foreground">{{ order.assunto }}</td>
+                  <td class="py-3 px-4 text-foreground">{{ order.tipo }}</td>
+                  <td class="py-3 px-4">
+                    @let statusInfo = getStatusInfo(order.status);
+                    <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full" [class]="statusInfo.color + ' ' + statusInfo.bgColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                          @switch (statusInfo.icon) {
+                              @case ('trend') { <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline> }
+                              @case ('pending') { <path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/> }
+                              @case ('treatment') { <path d="M21.5 2v6h-6"/><path d="M2.5 22v-6h6"/><path d="M2 11.5a10 10 0 0 1 18.8-4.3L22 2.5"/><path d="M22 12.5a10 10 0 0 1-18.8 4.3L2 21.5"/> }
+                              @case ('executed_circle') { <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/> }
+                              @case ('rejected') { <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/> }
+                              @case ('closed') { <polyline points="20 6 9 17 4 12"></polyline> }
+                          }
+                      </svg>
+                      {{ order.status }}
+                    </span>
+                  </td>
+                  <td class="py-3 px-4 text-foreground">{{ order.createdDate }}</td>
+                   <td class="py-3 px-4 text-right">
+                    <button class="text-label hover:text-foreground p-1 rounded-full hover:bg-secondary transition-colors" (click)="$event.stopPropagation()">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                    </button>
+                  </td>
+                </tr>
+              }
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

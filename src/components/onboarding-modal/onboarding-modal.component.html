@@ -1,0 +1,245 @@
+<div class="fixed inset-0 bg-black/60 z-40" (click)="closeModal()"></div>
+<div class="fixed inset-0 flex items-center justify-center z-50 p-4">
+  @if(editingClient(); as client) {
+    <div class="bg-secondary-light rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col" (click)="$event.stopPropagation()">
+      <!-- Modal Header -->
+      <div class="flex-shrink-0 p-6 border-b border-secondary">
+        <div class="flex justify-between items-start">
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-xl font-bold text-foreground">Progresso de Onboarding</h3>
+              <app-onboarding-tip tipText="Acompanhe e avance as etapas do onboarding do cliente aqui. Cada etapa concluída atualiza o progresso geral e habilita o botão 'Salvar Alterações'."/>
+            </div>
+            <p class="text-sm text-label">{{ client.name }}</p>
+          </div>
+          <button (click)="closeModal()" class="p-2 -m-2 rounded-full hover:bg-secondary transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <div class="mt-4">
+          <div class="flex justify-between items-center text-sm mb-1">
+            <span class="font-medium text-foreground">Progresso Geral</span>
+            <span class="text-label">{{ client.progress > client.totalSteps ? client.totalSteps : client.progress }} de {{ client.totalSteps }} etapas concluídas</span>
+          </div>
+          <div class="w-full bg-secondary rounded-full h-2">
+            <div 
+              class="h-2 rounded-full transition-all duration-500 ease-in-out" 
+              [class]="client.status === 'Concluído' ? 'bg-status-success' : 'bg-accent'" 
+              [style.width.%]="(client.progress > client.totalSteps ? client.totalSteps : client.progress) / client.totalSteps * 100">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-grow min-h-0">
+        <!-- Vertical Tabs Navigation -->
+        <div class="w-1/4 flex-shrink-0 border-r border-secondary p-4 rounded-bl-lg">
+          <nav class="flex flex-col space-y-1">
+            @for(step of steps; track step.id) {
+              <button 
+                (click)="selectStep(step.id)"
+                [disabled]="step.id > client.progress"
+                class="group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-md transition-colors disabled:cursor-not-allowed disabled:opacity-50 text-left"
+                [class]="activeStepId() === step.id ? 'bg-secondary text-foreground font-bold' : (step.id <= client.progress ? 'text-label hover:bg-secondary hover:text-foreground' : 'text-label')"
+              >
+                <span class="flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold shrink-0"
+                  [class]="client.progress > step.id ? 'bg-status-success text-white' : (activeStepId() === step.id ? 'bg-accent text-white' : 'bg-secondary text-foreground')">
+                   @if (client.progress > step.id) {
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    } @else {
+                      {{ step.id }}
+                    }
+                </span>
+                <span class="flex-grow">{{ step.name }}</span>
+              </button>
+            }
+          </nav>
+        </div>
+
+        <!-- Main Content & Footer -->
+        <div class="w-3/4 flex flex-col min-h-0">
+          <!-- Main Content -->
+          <div class="flex-grow p-6 overflow-y-auto">
+            @if (client.progress > 4) {
+              <div class="text-center py-8">
+                <div class="w-16 h-16 bg-status-success/10 text-status-success rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+                <h4 class="text-2xl font-bold text-foreground">Onboarding Concluído!</h4>
+                <p class="text-label mt-2">O cliente {{client.name}} completou todas as etapas do processo de onboarding.</p>
+              </div>
+            } @else {
+              @switch (activeStepId()) {
+                @case (1) { <!-- Formulário e Contrato -->
+                  <div class="bg-background p-5 rounded-lg border border-secondary">
+                    @if (client.progress > 1) {
+                      <div class="flex items-center gap-3 text-status-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        <h4 class="font-semibold">Etapa Concluída</h4>
+                      </div>
+                      <p class="text-label text-sm mt-1 pl-8">O formulário foi preenchido e o contrato assinado.</p>
+                    } @else {
+                      <h4 class="font-semibold text-foreground mb-3">Ações da Etapa</h4>
+                      <p class="text-label text-sm mb-4">Esta etapa inicial envolve o preenchimento do formulário de cadastro e a assinatura digital do contrato de serviço. Após a conclusão, o cliente pode prosseguir.</p>
+                      <button (click)="completeFormAndContractStep()" class="w-full mt-2 px-4 py-2 bg-accent text-white text-sm font-medium rounded-md hover:brightness-95 active:brightness-90 transition-all">
+                        Marcar como Concluído e Avançar
+                      </button>
+                    }
+                  </div>
+                }
+                @case (2) { <!-- Vínculo de Conta -->
+                  <div class="bg-background p-5 rounded-lg border border-secondary">
+                    <h4 class="font-semibold text-foreground mb-4">Status do Vínculo:</h4>
+                    <div class="flex items-start justify-between text-center text-xs text-label">
+                      <!-- Step 1: Solicitação Enviada -->
+                      <div class="w-1/3">
+                        <div class="w-5 h-5 mx-auto rounded-full border-2 flex items-center justify-center"
+                            [class]="accountLinkSubStatusIndex() >= 0 ? 'border-accent bg-accent text-white' : 'border-secondary'">
+                          @if (accountLinkSubStatusIndex() > 0) {
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                          }
+                        </div>
+                        <p class="mt-2" [class]="accountLinkSubStatusIndex() >= 0 ? 'text-foreground font-medium' : ''">Solicitação Enviada</p>
+                      </div>
+
+                      <div class="w-1/3 relative"><div class="absolute top-2.5 left-0 w-full h-0.5" [class]="accountLinkSubStatusIndex() > 0 ? 'bg-accent' : 'bg-secondary'"></div></div>
+                      
+                      <!-- Step 2: Push Aceito -->
+                      <div class="w-1/3">
+                        <div class="w-5 h-5 mx-auto rounded-full border-2 flex items-center justify-center"
+                            [class]="accountLinkSubStatusIndex() >= 1 ? 'border-accent bg-accent text-white' : 'border-secondary'">
+                          @if (accountLinkSubStatusIndex() > 1) {
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                          }
+                        </div>
+                        <p class="mt-2" [class]="accountLinkSubStatusIndex() >= 1 ? 'text-foreground font-medium' : ''">Push Aceito</p>
+                      </div>
+
+                      <div class="w-1/3 relative"><div class="absolute top-2.5 left-0 w-full h-0.5" [class]="accountLinkSubStatusIndex() > 1 ? 'bg-accent' : 'bg-secondary'"></div></div>
+                      
+                      <!-- Step 3: Concluído -->
+                      <div class="w-1/3">
+                        <div class="w-5 h-5 mx-auto rounded-full border-2 flex items-center justify-center" 
+                              [class]="accountLinkSubStatusIndex() >= 2 ? 'border-accent bg-accent text-white' : 'border-secondary'">
+                          @if (accountLinkSubStatusIndex() >= 2) {
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                          }
+                        </div>
+                        <p class="mt-2" [class]="accountLinkSubStatusIndex() >= 2 ? 'text-foreground font-medium' : ''">Concluído</p>
+                      </div>
+                    </div>
+                    @if (accountLinkSubStatusIndex() < accountLinkSubSteps.length -1) {
+                      <button (click)="advanceAccountLinkStatus()" [disabled]="client.progress !== 2" class="w-full mt-6 px-4 py-2 bg-accent text-white text-sm font-medium rounded-md hover:brightness-95 active:brightness-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                        Avançar Status
+                      </button>
+                    }
+                  </div>
+                }
+                @case (3) { <!-- Definição da Estratégia -->
+                  <div class="bg-background p-5 rounded-lg border border-secondary">
+                    @if (client.progress > 3) {
+                       <div class="flex items-center gap-3 text-status-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        <h4 class="font-semibold">Etapa Concluída</h4>
+                      </div>
+                      <p class="text-label text-sm mt-1 pl-8">A estratégia de investimentos foi definida.</p>
+                    } @else {
+                      @if (!strategyDefinedByAlgorithm()) {
+                        <h4 class="font-semibold text-foreground mb-3">Escolha como definir a estratégia de investimentos para este cliente.</h4>
+                        <button (click)="selectAssetAllocationAlgorithm()" [disabled]="client.progress !== 3" class="w-full flex items-center justify-center gap-3 p-3 bg-accent text-white font-semibold rounded-md hover:brightness-95 transition-all mb-3 disabled:opacity-50 disabled:cursor-not-allowed">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20V16"/></svg>
+                          Utilize o algoritmo de Asset Allocation para definir
+                        </button>
+                        <div class="text-center my-2 text-label text-sm">OU</div>
+                        <button (click)="markStrategyAsComplete()" [disabled]="client.progress !== 3" class="w-full text-center text-sm text-label hover:text-foreground hover:underline disabled:opacity-50 disabled:cursor-not-allowed">
+                          Marcar esta etapa como concluída manualmente
+                        </button>
+                      } @else {
+                        <div class="text-center py-4">
+                          <div class="w-12 h-12 bg-status-success/10 text-status-success rounded-full flex items-center justify-center mx-auto mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                          </div>
+                          <h4 class="font-semibold text-foreground">Estratégia selecionada!</h4>
+                          <p class="text-label text-sm mt-1">Você pode prosseguir para a próxima etapa.</p>
+                          <button (click)="markStrategyAsComplete()" [disabled]="client.progress !== 3" class="w-full mt-4 px-4 py-2 bg-accent text-white text-sm font-medium rounded-md hover:brightness-95 active:brightness-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            Avançar para Aporte
+                          </button>
+                        </div>
+                      }
+                    }
+                  </div>
+                }
+                @case (4) { <!-- Aporte / Realocação -->
+                  <div class="bg-background p-5 rounded-lg border border-secondary">
+                    @if (client.progress > 4) {
+                       <div class="flex items-center gap-3 text-status-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        <h4 class="font-semibold">Etapa Concluída</h4>
+                      </div>
+                      <p class="text-label text-sm mt-1 pl-8">O primeiro aporte foi realizado.</p>
+                    } @else {
+                      <div class="flex justify-between items-center mb-4">
+                        <h4 class="font-semibold text-foreground">Saldo em Conta:</h4>
+                        <span class="text-lg font-bold text-foreground">{{ client.balance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }}</span>
+                      </div>
+                      @if (client.balance === 0) {
+                        <div class="p-4 rounded-lg bg-yellow-500/10 text-yellow-700 border border-yellow-500/20 text-center">
+                          <div class="w-10 h-10 bg-yellow-500/10 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                          </div>
+                          <h5 class="font-bold">Aguardando Primeiro Aporte</h5>
+                          <p class="text-sm text-yellow-600 mt-1">O cliente precisa depositar fundos para ativar a conta e prosseguir.</p>
+                        </div>
+                        <button (click)="handleSimulateDeposit()" [disabled]="client.progress !== 4" class="w-full flex items-center justify-center gap-2 mt-4 px-4 py-2 bg-accent text-white text-sm font-medium rounded-md hover:brightness-95 active:brightness-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                          Simular Aporte de R$50.000
+                        </button>
+                      } @else {
+                          <div class="p-4 rounded-lg bg-status-success/10 text-status-success border border-status-success/20 text-center">
+                          <div class="w-10 h-10 bg-status-success/10 rounded-full flex items-center justify-center mx-auto mb-2">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                          </div>
+                          <h5 class="font-bold">Saldo Detectado!</h5>
+                          <p class="text-sm mt-1">O cliente já realizou o primeiro aporte. Você pode concluir o onboarding.</p>
+                        </div>
+                        <button (click)="concludeFinalStep()" [disabled]="client.progress !== 4" class="w-full mt-4 px-4 py-2 bg-accent text-white text-sm font-medium rounded-md hover:brightness-95 active:brightness-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                          Concluir Onboarding
+                        </button>
+                      }
+                    }
+                  </div>
+                }
+              }
+            }
+          </div>
+          
+          <!-- Modal Footer -->
+           <div class="flex-shrink-0 p-6 border-t border-secondary bg-background/50 rounded-br-lg">
+            <div>
+              <label for="annotations" class="block text-sm font-medium text-foreground mb-2">Anotações</label>
+              <textarea 
+                id="annotations"
+                rows="3"
+                class="w-full p-2 bg-secondary-light border border-secondary rounded-md text-sm focus:ring-accent focus:border-accent placeholder:text-label"
+                placeholder="Adicione anotações sobre o onboarding de {{client.name}}..."
+                [value]="client.annotations || ''"
+                (input)="updateAnnotations($event)"
+              ></textarea>
+            </div>
+            <div class="mt-4 flex justify-between items-center">
+              <button (click)="closeModal()" class="px-4 py-2 bg-secondary-light border border-secondary text-foreground text-sm font-medium rounded-md hover:bg-secondary transition-colors">
+                Fechar
+              </button>
+              <button 
+                (click)="saveChanges()" 
+                [disabled]="!hasChanges()"
+                class="px-4 py-2 bg-accent text-white text-sm font-medium rounded-md hover:brightness-95 active:brightness-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                Salvar Alterações
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

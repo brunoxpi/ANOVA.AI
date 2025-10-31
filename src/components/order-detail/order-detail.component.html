@@ -1,0 +1,214 @@
+@if (isLoading()) {
+  <div class="p-8">
+    <!-- Header Skeleton -->
+    <div class="flex justify-between items-start mb-6 animate-pulse">
+      <div class="flex items-center gap-4">
+        <div class="w-9 h-9 bg-secondary rounded-full"></div>
+        <div>
+          <div class="h-8 bg-secondary rounded w-96 mb-2"></div>
+          <div class="h-4 bg-secondary rounded w-80"></div>
+        </div>
+      </div>
+      <div class="h-10 bg-secondary rounded-md w-48"></div>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-6 animate-pulse">
+      <!-- Left Panel: Timeline Skeleton -->
+      <div class="lg:col-span-2">
+        <div class="bg-secondary-light p-6 rounded-lg border border-secondary">
+          <div class="h-6 bg-secondary rounded w-48 mb-4"></div>
+          <div class="space-y-6">
+            <!-- New Comment Skeleton -->
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 bg-secondary rounded-full shrink-0 mt-1"></div>
+              <div class="flex-grow">
+                <div class="h-16 bg-secondary rounded-md"></div>
+                <div class="flex justify-end mt-2">
+                  <div class="h-8 bg-secondary rounded-md w-24"></div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Timeline events skeleton -->
+            @for (_ of [1,2,3]; track $index) {
+              <div class="flex items-start gap-4">
+                <div class="w-10 h-10 bg-secondary rounded-full shrink-0 mt-1"></div>
+                <div class="flex-grow">
+                  <div class="flex items-baseline gap-2">
+                    <div class="h-4 bg-secondary rounded w-24"></div>
+                    <div class="h-3 bg-secondary rounded w-32"></div>
+                  </div>
+                  <div class="mt-1 bg-background p-3 rounded-lg h-12 border border-secondary"></div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+      <!-- Right Panel: Info & Actions Skeleton -->
+      <div class="lg:col-span-1 space-y-6">
+        <!-- Client Info Skeleton -->
+        <div class="bg-secondary-light p-4 rounded-lg border border-secondary">
+           <div class="h-6 bg-secondary rounded w-32 mb-3"></div>
+           <div class="space-y-3">
+              <div class="h-4 bg-secondary rounded w-full"></div>
+              <div class="h-4 bg-secondary rounded w-full"></div>
+              <div class="h-4 bg-secondary rounded w-5/6"></div>
+              <div class="h-4 bg-secondary rounded w-4/6"></div>
+           </div>
+        </div>
+        
+        <!-- Order Details Skeleton -->
+        <div class="bg-secondary-light p-4 rounded-lg border border-secondary">
+           <div class="h-6 bg-secondary rounded w-40 mb-3"></div>
+           <div class="space-y-3">
+            <div class="h-8 bg-secondary rounded w-full"></div>
+            <div class="h-8 bg-secondary rounded w-full"></div>
+           </div>
+           <div class="mt-3 pt-3 border-t border-secondary">
+              <div class="h-5 bg-secondary rounded w-1/2 ml-auto"></div>
+            </div>
+        </div>
+
+        <!-- Actions Skeleton -->
+        <div class="bg-secondary-light p-4 rounded-lg border border-secondary">
+           <div class="h-6 bg-secondary rounded w-24 mb-3"></div>
+           <div class="grid grid-cols-2 gap-2">
+             <div class="h-10 bg-secondary rounded"></div>
+             <div class="h-10 bg-secondary rounded"></div>
+             <div class="h-10 bg-secondary rounded"></div>
+             <div class="h-10 bg-secondary rounded"></div>
+           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="p-8">
+    @if (order(); as currentOrder) {
+      <!-- Header -->
+      <div class="flex justify-between items-start mb-6">
+        <div class="flex items-center gap-4">
+          <a routerLink="/allocations" class="p-2 rounded-full hover:bg-secondary transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          </a>
+          <div>
+            <h2 class="text-3xl font-bold text-foreground">Detalhes da Ordem <span class="font-mono text-2xl text-label">#{{ currentOrder.id }}</span></h2>
+            <p class="text-label mt-1">Veja o histórico completo e gerencie o status da ordem.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          @let statusInfo = getStatusInfo(currentOrder.status);
+          <span class="font-semibold px-4 py-2 rounded-md text-sm" [class]="statusInfo.color + ' ' + statusInfo.bgColor">
+            Status: {{ currentOrder.status }}
+          </span>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-6">
+        <!-- Left Panel: Timeline -->
+        <div class="lg:col-span-2">
+          <div class="bg-secondary-light p-6 rounded-lg border border-secondary">
+            <h3 class="font-bold text-lg mb-4">Timeline da Ordem</h3>
+            <div class="space-y-6">
+              <!-- New Comment -->
+              <div class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-sm text-foreground shrink-0 mt-1">AD</div>
+                <div class="flex-grow">
+                  <textarea 
+                    rows="2"
+                    class="w-full p-2 bg-background border border-secondary rounded-md text-sm focus:ring-accent focus:border-accent"
+                    placeholder="Adicionar um comentário..."
+                    [value]="newComment()"
+                    (input)="newComment.set($any($event.target).value)"
+                  ></textarea>
+                  <div class="text-right mt-2">
+                    <button 
+                      (click)="addComment()"
+                      [disabled]="!newComment()"
+                      class="px-4 py-1.5 bg-accent text-white text-sm font-medium rounded-md hover:brightness-95 disabled:opacity-50 transition-all">
+                      Comentar
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Timeline events -->
+              @for (event of currentOrder.timeline.slice().reverse(); track event.id) {
+                <div class="flex items-start gap-4">
+                  @let eventInfo = getTimelineEventInfo(event.type);
+                  <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-1" [class]="eventInfo.color">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-foreground/70">
+                      @switch (eventInfo.icon) {
+                        @case('history') { <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/> <path d="M3 3v5h5"/> }
+                        @case('message-square') { <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/> }
+                        @case('paperclip') { <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.59a2 2 0 0 1-2.83-2.83l8.49-8.48"/> }
+                        @case('info') { <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/> }
+                      }
+                     </svg>
+                  </div>
+                  <div class="flex-grow">
+                    <div class="flex items-baseline gap-2">
+                      <p class="font-semibold text-foreground">{{ event.author }}</p>
+                      <p class="text-xs text-label">{{ event.timestamp }}</p>
+                    </div>
+                    <div class="mt-1 bg-background p-3 rounded-lg border border-secondary text-sm">
+                      {{ event.content }}
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+        <!-- Right Panel: Info & Actions -->
+        <div class="lg:col-span-1 space-y-6">
+          <!-- Client Info -->
+          <div class="bg-secondary-light p-4 rounded-lg border border-secondary">
+             <h4 class="font-bold text-lg text-foreground mb-3">Cliente</h4>
+             <div class="text-sm space-y-2">
+                <div class="flex justify-between"><span class="text-label">Nome:</span><span class="font-medium text-foreground">{{ currentOrder.client.name }}</span></div>
+                <div class="flex justify-between"><span class="text-label">Conta:</span><span class="font-medium text-foreground">{{ currentOrder.client.account }}</span></div>
+                <div class="flex justify-between"><span class="text-label">Assessor:</span><span class="font-medium text-foreground">{{ currentOrder.client.assessor }}</span></div>
+                <div class="flex justify-between"><span class="text-label">Perfil de Risco:</span><span class="font-medium text-foreground">{{ currentOrder.client.riskProfile }}</span></div>
+             </div>
+          </div>
+          
+          <!-- Order Details -->
+          <div class="bg-secondary-light p-4 rounded-lg border border-secondary">
+             <h4 class="font-bold text-lg text-foreground mb-3">Cesta de Ativos</h4>
+             <div class="space-y-3">
+              @for(item of currentOrder.assets; track item.asset.id) {
+                <div class="flex justify-between items-center bg-background p-2 rounded-md">
+                  <span class="text-sm font-medium">{{ item.asset.name }}</span>
+                  <span class="text-sm text-label">{{ item.amount.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) }}</span>
+                </div>
+              }
+             </div>
+             <div class="mt-3 pt-3 border-t border-secondary font-bold flex justify-between">
+                <span>Total:</span>
+                <span>{{ currentOrder.totalValue.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) }}</span>
+              </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="bg-secondary-light p-4 rounded-lg border border-secondary">
+             <h4 class="font-bold text-lg text-foreground mb-3">Ações</h4>
+             <div class="grid grid-cols-2 gap-2 text-sm">
+               <button (click)="changeStatus(OrderStatus.Executada)" class="p-2 bg-status-success/20 text-status-success font-semibold rounded hover:bg-status-success/30 transition-colors">Executar</button>
+               <button (click)="changeStatus(OrderStatus.Rejeitada)" class="p-2 bg-status-error/20 text-status-error font-semibold rounded hover:bg-status-error/30 transition-colors">Cancelar</button>
+               <button (click)="changeStatus(OrderStatus.Rejeitada)" class="p-2 bg-gray-200 text-gray-700 font-semibold rounded hover:bg-gray-300 transition-colors">Rejeitar</button>
+               <button (click)="changeStatus(OrderStatus.ComPendencia)" class="p-2 bg-status-warning/20 text-status-warning font-semibold rounded hover:bg-status-warning/30 transition-colors">Marcar Pendência</button>
+             </div>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div class="text-center py-24">
+         <h3 class="text-xl font-bold text-foreground">Ordem não encontrada</h3>
+         <p class="text-label mt-2">A ordem que você está procurando não existe ou foi removida.</p>
+         <a routerLink="/allocations" class="mt-4 inline-block px-4 py-2 bg-accent text-white text-sm font-medium rounded-md hover:brightness-95">Voltar para o Dashboard</a>
+      </div>
+    }
+  </div>
+}

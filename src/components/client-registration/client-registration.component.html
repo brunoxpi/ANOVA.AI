@@ -1,0 +1,677 @@
+<div class="bg-background min-h-screen text-foreground">
+  <svg class="w-0 h-0 absolute">
+    <defs>
+      <linearGradient id="brain-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" style="stop-color:#F59E0B;" />
+        <stop offset="100%" style="stop-color:#EF4444;" />
+      </linearGradient>
+    </defs>
+  </svg>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Stepper -->
+    <div class="mb-12">
+      <div class="flex items-center">
+        @for (step of steps; track step.id; let i = $index) {
+          <div class="flex items-center" [class]="{'flex-1': i < steps.length - 1}">
+            <button (click)="goToStep(step.id)" [disabled]="step.id >= currentStep()"
+              class="flex flex-col items-center text-center w-24">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
+                   [class]="currentStep() > step.id ? 'bg-status-success text-white' : (currentStep() === step.id ? 'bg-foreground text-background' : 'bg-secondary text-label')">
+                {{ step.id }}
+              </div>
+              <p class="mt-2 text-sm"
+                 [class]="currentStep() >= step.id ? 'text-foreground font-semibold' : 'text-label'">{{ step.name }}</p>
+            </button>
+
+            @if (i < steps.length - 1) {
+              <div class="flex-1 h-0.5"
+                   [class]="currentStep() > step.id ? 'bg-status-success' : 'bg-secondary'"></div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Title -->
+    <h1 class="text-3xl font-bold text-foreground mb-8">Cadastro de Cliente</h1>
+
+    <!-- Form content -->
+    <div class="space-y-8">
+      @switch(currentStep()) {
+        @case(1) {
+          <input #fileInput type="file" class="hidden" accept="image/*,application/pdf" (change)="onFileSelected($event)">
+          <!-- AI Upload -->
+          <div class="bg-secondary-light p-6 rounded-lg border border-secondary text-center transition-all duration-300">
+            @if (isAnalyzingDocument()) {
+              <div class="flex flex-col items-center justify-center min-h-[140px]">
+                <svg class="animate-spin h-8 w-8 text-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-label text-sm mt-2">Analisando documento...</p>
+              </div>
+            } @else if (analysisSuccess()) {
+              <div class="flex flex-col items-center justify-center min-h-[140px]">
+                <div class="w-10 h-10 bg-status-success/10 text-status-success rounded-full flex items-center justify-center mx-auto mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <h3 class="font-bold text-foreground">Documento analisado com sucesso!</h3>
+                <p class="text-label text-sm">Verifique os campos preenchidos abaixo.</p>
+                <button (click)="fileInput.click()" class="mt-3 text-sm font-medium text-label hover:text-foreground underline">
+                  Analisar Outro
+                </button>
+              </div>
+            } @else if (analysisError(); as error) {
+              <div class="flex flex-col items-center justify-center min-h-[140px]">
+                <div class="w-10 h-10 bg-status-error/10 text-status-error rounded-full flex items-center justify-center mx-auto mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                </div>
+                <h3 class="font-bold text-foreground mt-1">Falha na Análise</h3>
+                <p class="text-label text-sm max-w-xs">{{ error }}</p>
+                <button (click)="fileInput.click()" class="mt-3 px-4 py-2 bg-foreground text-background text-sm font-medium rounded-md hover:brightness-95 active:brightness-90 transition-all">
+                  Tentar Novamente
+                </button>
+              </div>
+            } @else {
+              <div class="flex flex-col items-center justify-center min-h-[140px]">
+                <div class="flex items-center justify-center gap-2">
+                  <h3 class="font-bold text-lg">Comece com a IA</h3>
+                  <app-onboarding-tip tipText="Use nossa IA para preencher os dados pessoais automaticamente a partir de um documento de identidade (RG ou CNH). Isso economiza tempo e reduz erros."></app-onboarding-tip>
+                </div>
+                <p class="text-label text-sm mt-1 mb-4">Faça o upload de um documento (RG, CNH) para preencher os dados automaticamente.</p>
+                <button (click)="fileInput.click()" class="px-4 py-2 bg-foreground text-background text-sm font-medium rounded-md hover:brightness-95 active:brightness-90 transition-all flex items-center gap-2 mx-auto">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                  Fazer Upload do Documento
+                </button>
+              </div>
+            }
+          </div>
+          <!-- Dados Pessoais -->
+          <div class="bg-secondary-light p-6 rounded-lg border border-secondary">
+            <fieldset [disabled]="isAnalyzingDocument()">
+              <h3 class="font-bold text-lg mb-4">Dados Pessoais</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <!-- Nome Completo -->
+                <div>
+                  <label class="text-sm text-label flex items-center gap-1.5">
+                    Nome Completo
+                    @if (aiSuggestedFields()['nomeCompleto']) {
+                      <span class="flex items-center" title="Sugestão da IA">
+                        <svg width="14" height="14" viewBox="0 0 24 24" class="inline text-status-warning">
+                          <path fill="currentColor" d="M17.33 2c-1.53 0-2.81.93-3.33 2.22-.52-1.29-1.8-2.22-3.33-2.22-1.95 0-3.67 1.83-3.67 4.17 0 1.22.42 2.36 1.25 3.25-.89.86-1.42 2.05-1.42 3.42 0 2.33 1.92 4.25 4.25 4.25.78 0 1.5-.23 2.12-.62.62.39 1.34.62 2.12.62 2.33 0 4.25-1.92 4.25-4.25 0-1.37-.53-2.56-1.42-3.42.83-.89 1.25-2.03 1.25-3.25C21 3.83 19.28 2 17.33 2zM12 18.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                        </svg>
+                      </span>
+                    }
+                  </label>
+                  <input type="text" [value]="nomeCompleto()" (input)="nomeCompleto.set($any($event.target).value)"
+                    class="w-full mt-1 p-2 bg-secondary-light border rounded-md text-sm transition-colors focus:outline-none focus:ring-2"
+                    [class]="aiSuggestedFields()['nomeCompleto'] 
+                      ? 'border-status-warning bg-status-warning/10 focus:ring-status-warning/50 animate-field-glow' 
+                      : 'border-secondary focus:ring-accent focus:border-accent'">
+                  @if (aiSuggestedFields()['nomeCompleto']) {
+                    <p class="text-xs text-label mt-1 animate-fade-in-up">Preenchido via IA</p>
+                  }
+                </div>
+                <!-- CPF -->
+                <div>
+                  <label class="text-sm text-label flex items-center gap-1.5">
+                    CPF
+                    @if (aiSuggestedFields()['cpf']) {
+                      <span class="flex items-center" title="Sugestão da IA">
+                        <svg width="14" height="14" viewBox="0 0 24 24" class="inline text-status-warning">
+                          <path fill="currentColor" d="M17.33 2c-1.53 0-2.81.93-3.33 2.22-.52-1.29-1.8-2.22-3.33-2.22-1.95 0-3.67 1.83-3.67 4.17 0 1.22.42 2.36 1.25 3.25-.89.86-1.42 2.05-1.42 3.42 0 2.33 1.92 4.25 4.25 4.25.78 0 1.5-.23 2.12-.62.62.39 1.34.62 2.12.62 2.33 0 4.25-1.92 4.25-4.25 0-1.37-.53-2.56-1.42-3.42.83-.89 1.25-2.03 1.25-3.25C21 3.83 19.28 2 17.33 2zM12 18.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                        </svg>
+                      </span>
+                    }
+                  </label>
+                  <input type="text" placeholder="000.000.000-00" [value]="cpf()" (input)="cpf.set($any($event.target).value)"
+                    class="w-full mt-1 p-2 bg-secondary-light border rounded-md text-sm transition-colors focus:outline-none focus:ring-2"
+                    [class]="aiSuggestedFields()['cpf'] 
+                      ? 'border-status-warning bg-status-warning/10 focus:ring-status-warning/50 animate-field-glow' 
+                      : 'border-secondary focus:ring-accent focus:border-accent'">
+                  @if (aiSuggestedFields()['cpf']) {
+                    <p class="text-xs text-label mt-1 animate-fade-in-up">Preenchido via IA</p>
+                  }
+                </div>
+                <!-- Data de Nascimento -->
+                <div>
+                  <label class="text-sm text-label flex items-center gap-1.5">
+                    Data de Nascimento
+                    @if (aiSuggestedFields()['dataNascimento']) {
+                      <span class="flex items-center" title="Sugestão da IA">
+                        <svg width="14" height="14" viewBox="0 0 24 24" class="inline text-status-warning">
+                          <path fill="currentColor" d="M17.33 2c-1.53 0-2.81.93-3.33 2.22-.52-1.29-1.8-2.22-3.33-2.22-1.95 0-3.67 1.83-3.67 4.17 0 1.22.42 2.36 1.25 3.25-.89.86-1.42 2.05-1.42 3.42 0 2.33 1.92 4.25 4.25 4.25.78 0 1.5-.23 2.12-.62.62.39 1.34.62 2.12.62 2.33 0 4.25-1.92 4.25-4.25 0-1.37-.53-2.56-1.42-3.42.83-.89 1.25-2.03 1.25-3.25C21 3.83 19.28 2 17.33 2zM12 18.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                        </svg>
+                      </span>
+                    }
+                  </label>
+                  <input type="text" placeholder="dd/mm/aaaa" [value]="dataNascimento()" (input)="dataNascimento.set($any($event.target).value)"
+                    class="w-full mt-1 p-2 bg-secondary-light border rounded-md text-sm transition-colors focus:outline-none focus:ring-2"
+                    [class]="aiSuggestedFields()['dataNascimento'] 
+                      ? 'border-status-warning bg-status-warning/10 focus:ring-status-warning/50 animate-field-glow' 
+                      : 'border-secondary focus:ring-accent focus:border-accent'">
+                  @if (aiSuggestedFields()['dataNascimento']) {
+                    <p class="text-xs text-label mt-1 animate-fade-in-up">Preenchido via IA</p>
+                  }
+                </div>
+                <!-- RG -->
+                <div>
+                  <label class="text-sm text-label flex items-center gap-1.5">RG
+                    @if(aiSuggestedFields()['rg']) {
+                      <span class="flex items-center" title="Sugestão da IA">
+                        <svg width="14" height="14" viewBox="0 0 24 24" class="inline text-status-warning">
+                          <path fill="currentColor" d="M17.33 2c-1.53 0-2.81.93-3.33 2.22-.52-1.29-1.8-2.22-3.33-2.22-1.95 0-3.67 1.83-3.67 4.17 0 1.22.42 2.36 1.25 3.25-.89.86-1.42 2.05-1.42 3.42 0 2.33 1.92 4.25 4.25 4.25.78 0 1.5-.23 2.12-.62.62.39 1.34.62 2.12.62 2.33 0 4.25-1.92 4.25-4.25 0-1.37-.53-2.56-1.42-3.42.83-.89 1.25-2.03 1.25-3.25C21 3.83 19.28 2 17.33 2zM12 18.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                        </svg>
+                      </span>
+                    }
+                  </label>
+                  <input type="text" placeholder="00.000.000-0" [value]="rg()" (input)="rg.set($any($event.target).value)"
+                    class="w-full mt-1 p-2 bg-secondary-light border rounded-md text-sm transition-colors focus:outline-none focus:ring-2"
+                    [class]="aiSuggestedFields()['rg'] 
+                      ? 'border-status-warning bg-status-warning/10 focus:ring-status-warning/50 animate-field-glow' 
+                      : 'border-secondary focus:ring-accent focus:border-accent'">
+                  @if (aiSuggestedFields()['rg']) {
+                    <p class="text-xs text-label mt-1 animate-fade-in-up">Preenchido via IA</p>
+                  }
+                </div>
+                <!-- Órgão Emissor -->
+                <div>
+                  <label class="text-sm text-label flex items-center gap-1.5">Órgão Emissor
+                    @if(aiSuggestedFields()['orgaoEmissor']) {
+                      <span class="flex items-center" title="Sugestão da IA">
+                        <svg width="14" height="14" viewBox="0 0 24 24" class="inline text-status-warning">
+                          <path fill="currentColor" d="M17.33 2c-1.53 0-2.81.93-3.33 2.22-.52-1.29-1.8-2.22-3.33-2.22-1.95 0-3.67 1.83-3.67 4.17 0 1.22.42 2.36 1.25 3.25-.89.86-1.42 2.05-1.42 3.42 0 2.33 1.92 4.25 4.25 4.25.78 0 1.5-.23 2.12-.62.62.39 1.34.62 2.12.62 2.33 0 4.25-1.92 4.25-4.25 0-1.37-.53-2.56-1.42-3.42.83-.89 1.25-2.03 1.25-3.25C21 3.83 19.28 2 17.33 2zM12 18.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                        </svg>
+                      </span>
+                    }
+                  </label>
+                  <input type="text" [value]="orgaoEmissor()" (input)="orgaoEmissor.set($any($event.target).value)"
+                    class="w-full mt-1 p-2 bg-secondary-light border rounded-md text-sm transition-colors focus:outline-none focus:ring-2"
+                    [class]="aiSuggestedFields()['orgaoEmissor'] 
+                      ? 'border-status-warning bg-status-warning/10 focus:ring-status-warning/50 animate-field-glow' 
+                      : 'border-secondary focus:ring-accent focus:border-accent'">
+                  @if (aiSuggestedFields()['orgaoEmissor']) {
+                    <p class="text-xs text-label mt-1 animate-fade-in-up">Preenchido via IA</p>
+                  }
+                </div>
+                <!-- Data de Expedição -->
+                <div>
+                  <label class="text-sm text-label flex items-center gap-1.5">Data de Expedição
+                    @if(aiSuggestedFields()['dataExpedicao']) {
+                      <span class="flex items-center" title="Sugestão da IA">
+                        <svg width="14" height="14" viewBox="0 0 24 24" class="inline text-status-warning">
+                          <path fill="currentColor" d="M17.33 2c-1.53 0-2.81.93-3.33 2.22-.52-1.29-1.8-2.22-3.33-2.22-1.95 0-3.67 1.83-3.67 4.17 0 1.22.42 2.36 1.25 3.25-.89.86-1.42 2.05-1.42 3.42 0 2.33 1.92 4.25 4.25 4.25.78 0 1.5-.23 2.12-.62.62.39 1.34.62 2.12.62 2.33 0 4.25-1.92 4.25-4.25 0-1.37-.53-2.56-1.42-3.42.83-.89 1.25-2.03 1.25-3.25C21 3.83 19.28 2 17.33 2zM12 18.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                        </svg>
+                      </span>
+                    }
+                  </label>
+                  <input type="text" placeholder="dd/mm/aaaa" [value]="dataExpedicao()" (input)="dataExpedicao.set($any($event.target).value)"
+                    class="w-full mt-1 p-2 bg-secondary-light border rounded-md text-sm transition-colors focus:outline-none focus:ring-2"
+                    [class]="aiSuggestedFields()['dataExpedicao'] 
+                      ? 'border-status-warning bg-status-warning/10 focus:ring-status-warning/50 animate-field-glow' 
+                      : 'border-secondary focus:ring-accent focus:border-accent'">
+                  @if (aiSuggestedFields()['dataExpedicao']) {
+                    <p class="text-xs text-label mt-1 animate-fade-in-up">Preenchido via IA</p>
+                  }
+                </div>
+                <!-- Other fields -->
+                <div><label class="text-sm text-label">Nacionalidade</label><input type="text" [value]="nacionalidade()" (input)="nacionalidade.set($any($event.target).value)" class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm"></div>
+                <div><label class="text-sm text-label">Naturalidade (UF)</label><input type="text" placeholder="Ex: SP" [value]="naturalidade()" (input)="naturalidade.set($any($event.target).value)" class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm"></div>
+                <div><label class="text-sm text-label">Sexo</label><select [value]="sexo()" (change)="sexo.set($any($event.target).value)" class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm"><option>Selecione...</option><option>Masculino</option><option>Feminino</option></select></div>
+                <div><label class="text-sm text-label">Escolaridade</label><select [value]="escolaridade()" (change)="escolaridade.set($any($event.target).value)" class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm"><option>Selecione...</option><option>Ensino Médio</option><option>Superior</option><option>Pós-graduação</option></select></div>
+                <div><label class="text-sm text-label">Estado Civil</label><select [value]="estadoCivil()" (change)="estadoCivil.set($any($event.target).value)" class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm"><option>Selecione...</option><option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>Viúvo(a)</option></select></div>
+                <!-- Nome do Pai -->
+                <div>
+                  <label class="text-sm text-label flex items-center gap-1.5">Nome do Pai
+                  @if(aiSuggestedFields()['nomePai']) {
+                      <span class="flex items-center" title="Sugestão da IA">
+                        <svg width="14" height="14" viewBox="0 0 24 24" class="inline text-status-warning">
+                          <path fill="currentColor" d="M17.33 2c-1.53 0-2.81.93-3.33 2.22-.52-1.29-1.8-2.22-3.33-2.22-1.95 0-3.67 1.83-3.67 4.17 0 1.22.42 2.36 1.25 3.25-.89.86-1.42 2.05-1.42 3.42 0 2.33 1.92 4.25 4.25 4.25.78 0 1.5-.23 2.12-.62.62.39 1.34.62 2.12.62 2.33 0 4.25-1.92 4.25-4.25 0-1.37-.53-2.56-1.42-3.42.83-.89 1.25-2.03 1.25-3.25C21 3.83 19.28 2 17.33 2zM12 18.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                        </svg>
+                      </span>
+                    }
+                  </label>
+                  <input type="text" [value]="nomePai()" (input)="nomePai.set($any($event.target).value)"
+                    class="w-full mt-1 p-2 bg-secondary-light border rounded-md text-sm transition-colors focus:outline-none focus:ring-2"
+                    [class]="aiSuggestedFields()['nomePai'] 
+                      ? 'border-status-warning bg-status-warning/10 focus:ring-status-warning/50 animate-field-glow' 
+                      : 'border-secondary focus:ring-accent focus:border-accent'">
+                  @if(aiSuggestedFields()['nomePai']) {
+                    <p class="text-xs text-label mt-1 animate-fade-in-up">Preenchido via IA</p>
+                  }
+                </div>
+                <!-- Nome da Mãe -->
+                <div class="md:col-span-2">
+                  <label class="text-sm text-label flex items-center gap-1.5">Nome da Mãe
+                    @if(aiSuggestedFields()['nomeMae']) {
+                      <span class="flex items-center" title="Sugestão da IA">
+                        <svg width="14" height="14" viewBox="0 0 24 24" class="inline text-status-warning">
+                          <path fill="currentColor" d="M17.33 2c-1.53 0-2.81.93-3.33 2.22-.52-1.29-1.8-2.22-3.33-2.22-1.95 0-3.67 1.83-3.67 4.17 0 1.22.42 2.36 1.25 3.25-.89.86-1.42 2.05-1.42 3.42 0 2.33 1.92 4.25 4.25 4.25.78 0 1.5-.23 2.12-.62.62.39 1.34.62 2.12.62 2.33 0 4.25-1.92 4.25-4.25 0-1.37-.53-2.56-1.42-3.42.83-.89 1.25-2.03 1.25-3.25C21 3.83 19.28 2 17.33 2zM12 18.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                        </svg>
+                      </span>
+                    }
+                  </label>
+                  <input type="text" [value]="nomeMae()" (input)="nomeMae.set($any($event.target).value)"
+                    class="w-full mt-1 p-2 bg-secondary-light border rounded-md text-sm transition-colors focus:outline-none focus:ring-2"
+                    [class]="aiSuggestedFields()['nomeMae'] 
+                      ? 'border-status-warning bg-status-warning/10 focus:ring-status-warning/50 animate-field-glow' 
+                      : 'border-secondary focus:ring-accent focus:border-accent'">
+                  @if(aiSuggestedFields()['nomeMae']) {
+                    <p class="text-xs text-label mt-1 animate-fade-in-up">Preenchido via IA</p>
+                  }
+                </div>
+              </div>
+            </fieldset>
+          </div>
+          <!-- Informações Adicionais -->
+          <div class="bg-secondary-light p-6 rounded-lg border border-secondary">
+             <fieldset [disabled]="isAnalyzingDocument()">
+              <h3 class="font-bold text-lg mb-4">Informações Adicionais</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <div class="md:col-span-2">
+                  <label class="text-sm text-label">Possui conta em alguma corretora?</label>
+                  <div class="flex gap-4 mt-2">
+                      <label class="flex items-center cursor-pointer">
+                          <input type="radio" name="has-brokerage" class="mr-2" [checked]="hasBrokerageAccount()" (change)="hasBrokerageAccount.set(true)">
+                          <span>Sim</span>
+                      </label>
+                      <label class="flex items-center cursor-pointer">
+                          <input type="radio" name="has-brokerage" class="mr-2" [checked]="!hasBrokerageAccount()" (change)="hasBrokerageAccount.set(false)">
+                          <span>Não</span>
+                      </label>
+                  </div>
+                </div>
+
+                @if (hasBrokerageAccount()) {
+                  <div>
+                    <label class="text-sm text-label">Corretora</label>
+                    <select 
+                        class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm"
+                        [value]="selectedBrokerage()"
+                        (change)="selectedBrokerage.set($any($event.target).value)">
+                        <option value="" disabled>Selecione...</option>
+                        @for(brokerage of brokerages(); track brokerage) {
+                            <option [value]="brokerage">{{ brokerage }}</option>
+                        }
+                    </select>
+                  </div>
+                  <div>
+                    <label class="text-sm text-label">Código de conta</label>
+                    <input type="text" class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm" [value]="accountCode()" (input)="accountCode.set($any($event.target).value)">
+                  </div>
+                }
+
+                <div>
+                  <label class="text-sm text-label">Data de Registro</label>
+                  <input type="text" [value]="registrationDate()" disabled class="w-full mt-1 p-2 bg-secondary border-secondary rounded-md text-sm text-label cursor-not-allowed">
+                </div>
+                <div>
+                  <label class="text-sm text-label">Unidade Credenciada</label>
+                  <input type="text" [value]="unidadeCredenciada()" disabled class="w-full mt-1 p-2 bg-secondary border-secondary rounded-md text-sm text-label cursor-not-allowed">
+                </div>
+                <div>
+                  <label class="text-sm text-label">Assessor</label>
+                  <input type="text" [value]="assessor()" disabled class="w-full mt-1 p-2 bg-secondary border-secondary rounded-md text-sm text-label cursor-not-allowed">
+                </div>
+              </div>
+            </fieldset>
+          </div>
+        }
+        @case(2) {
+          <input #addressFileInput type="file" class="hidden" accept="image/*,application/pdf" (change)="onAddressFileSelected($event)">
+          <!-- AI Upload -->
+          <div class="bg-secondary-light p-6 rounded-lg border border-secondary text-center transition-all duration-300">
+            @if (isAnalyzingAddress()) {
+              <div class="flex flex-col items-center justify-center min-h-[140px]">
+                <svg class="animate-spin h-8 w-8 text-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-label text-sm mt-2">Analisando comprovante...</p>
+              </div>
+            } @else if (addressAnalysisSuccess()) {
+              <div class="flex flex-col items-center justify-center min-h-[140px]">
+                <div class="w-10 h-10 bg-status-success/10 text-status-success rounded-full flex items-center justify-center mx-auto mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <h3 class="font-bold text-foreground">Comprovante analisado com sucesso!</h3>
+                <p class="text-label text-sm">Verifique os campos preenchidos abaixo.</p>
+                <button (click)="addressFileInput.click()" class="mt-3 text-sm font-medium text-label hover:text-foreground underline">
+                  Analisar Outro
+                </button>
+              </div>
+            } @else if (addressAnalysisError(); as error) {
+              <div class="flex flex-col items-center justify-center min-h-[140px]">
+                <div class="w-10 h-10 bg-status-error/10 text-status-error rounded-full flex items-center justify-center mx-auto mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                </div>
+                <h3 class="font-bold text-foreground mt-1">Falha na Análise</h3>
+                <p class="text-label text-sm max-w-xs">{{ error }}</p>
+                <button (click)="addressFileInput.click()" class="mt-3 px-4 py-2 bg-foreground text-background text-sm font-medium rounded-md hover:brightness-95 active:brightness-90 transition-all">
+                  Tentar Novamente
+                </button>
+              </div>
+            } @else {
+              <div class="flex flex-col items-center justify-center min-h-[140px]">
+                <div class="flex items-center justify-center gap-2">
+                  <h3 class="font-bold text-lg">Comece com a IA</h3>
+                  <app-onboarding-tip tipText="Faça o upload de um comprovante de residência e deixe a IA extrair o endereço para você, agilizando o preenchimento."></app-onboarding-tip>
+                </div>
+                <p class="text-label text-sm mt-1 mb-4">Faça o upload de um comprovante de residência para preencher os dados automaticamente.</p>
+                <button (click)="addressFileInput.click()" class="px-4 py-2 bg-foreground text-background text-sm font-medium rounded-md hover:brightness-95 active:brightness-90 transition-all flex items-center gap-2 mx-auto">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                    Fazer Upload do Comprovante
+                </button>
+              </div>
+            }
+          </div>
+
+          <div class="bg-secondary-light p-6 rounded-lg border border-secondary">
+            <fieldset [disabled]="isAnalyzingAddress()">
+              <h3 class="font-bold text-lg mb-4">Endereço</h3>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
+                  <!-- CEP -->
+                  <div class="md:col-span-1">
+                    <label class="text-sm text-label flex items-center gap-1.5">CEP
+                        @if (aiSuggestedAddressFields()['cep']) {
+                            <span class="flex items-center" title="Sugestão da IA">
+                                <svg width="14" height="14" viewBox="0 0 24 24" class="inline text-status-warning"><path fill="currentColor" d="M17.33 2c-1.53 0-2.81.93-3.33 2.22-.52-1.29-1.8-2.22-3.33-2.22-1.95 0-3.67 1.83-3.67 4.17 0 1.22.42 2.36 1.25 3.25-.89.86-1.42 2.05-1.42 3.42 0 2.33 1.92 4.25 4.25 4.25.78 0 1.5-.23 2.12-.62.62.39 1.34.62 2.12.62 2.33 0 4.25-1.92 4.25-4.25 0-1.37-.53-2.56-1.42-3.42.83-.89 1.25-2.03 1.25-3.25C21 3.83 19.28 2 17.33 2zM12 18.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                            </span>
+                        }
+                    </label>
+                    <input type="text" placeholder="00000-000" [value]="cep()" (input)="cep.set($any($event.target).value)" (blur)="searchCep()"
+                        class="w-full mt-1 p-2 bg-secondary-light border rounded-md text-sm transition-colors focus:outline-none focus:ring-2"
+                        [class]="aiSuggestedAddressFields()['cep'] ? 'border-status-warning bg-status-warning/10 focus:ring-status-warning/50 animate-field-glow' : 'border-secondary focus:ring-accent focus:border-accent'">
+                    @if (aiSuggestedAddressFields()['cep']) {
+                        <p class="text-xs text-label mt-1 animate-fade-in-up">Preenchido via IA</p>
+                    }
+                  </div>
+                  <!-- Endereço -->
+                  <div class="md:col-span-2">
+                    <label class="text-sm text-label flex items-center gap-1.5">Endereço
+                        @if (aiSuggestedAddressFields()['endereco']) {
+                            <span class="flex items-center" title="Sugestão da IA">
+                                <svg width="14" height="14" viewBox="0 0 24 24" class="inline text-status-warning"><path fill="currentColor" d="M17.33 2c-1.53 0-2.81.93-3.33 2.22-.52-1.29-1.8-2.22-3.33-2.22-1.95 0-3.67 1.83-3.67 4.17 0 1.22.42 2.36 1.25 3.25-.89.86-1.42 2.05-1.42 3.42 0 2.33 1.92 4.25 4.25 4.25.78 0 1.5-.23 2.12-.62.62.39 1.34.62 2.12.62 2.33 0 4.25-1.92 4.25-4.25 0-1.37-.53-2.56-1.42-3.42.83-.89 1.25-2.03 1.25-3.25C21 3.83 19.28 2 17.33 2zM12 18.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                            </span>
+                        }
+                    </label>
+                    <input type="text" [value]="endereco()" (input)="endereco.set($any($event.target).value)"
+                        class="w-full mt-1 p-2 bg-secondary-light border rounded-md text-sm transition-colors focus:outline-none focus:ring-2"
+                        [class]="aiSuggestedAddressFields()['endereco'] ? 'border-status-warning bg-status-warning/10 focus:ring-status-warning/50 animate-field-glow' : 'border-secondary focus:ring-accent focus:border-accent'">
+                    @if (aiSuggestedAddressFields()['endereco']) {
+                        <p class="text-xs text-label mt-1 animate-fade-in-up">Preenchido via IA</p>
+                    }
+                  </div>
+                  <!-- Número -->
+                  <div class="md:col-span-1">
+                      <label class="text-sm text-label">Número</label>
+                      <input type="text" [value]="numero()" (input)="numero.set($any($event.target).value)" class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm focus:ring-2 focus:ring-accent focus:border-accent">
+                  </div>
+                  <!-- Complemento -->
+                  <div class="md:col-span-2">
+                      <label class="text-sm text-label">Complemento</label>
+                      <input type="text" placeholder="Apto, Bloco, etc." [value]="complemento()" (input)="complemento.set($any($event.target).value)" class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm focus:ring-2 focus:ring-accent focus:border-accent">
+                  </div>
+                  <!-- Bairro -->
+                  <div class="md:col-span-1">
+                      <label class="text-sm text-label flex items-center gap-1.5">Bairro
+                          @if (aiSuggestedAddressFields()['bairro']) {
+                              <span class="flex items-center" title="Sugestão da IA">
+                                  <svg width="14" height="14" viewBox="0 0 24 24" class="inline text-status-warning"><path fill="currentColor" d="M17.33 2c-1.53 0-2.81.93-3.33 2.22-.52-1.29-1.8-2.22-3.33-2.22-1.95 0-3.67 1.83-3.67 4.17 0 1.22.42 2.36 1.25 3.25-.89.86-1.42 2.05-1.42 3.42 0 2.33 1.92 4.25 4.25 4.25.78 0 1.5-.23 2.12-.62.62.39 1.34.62 2.12.62 2.33 0 4.25-1.92 4.25-4.25 0-1.37-.53-2.56-1.42-3.42.83-.89 1.25-2.03 1.25-3.25C21 3.83 19.28 2 17.33 2zM12 18.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                              </span>
+                          }
+                      </label>
+                      <input type="text" [value]="bairro()" (input)="bairro.set($any($event.target).value)"
+                          class="w-full mt-1 p-2 bg-secondary-light border rounded-md text-sm transition-colors focus:outline-none focus:ring-2"
+                          [class]="aiSuggestedAddressFields()['bairro'] ? 'border-status-warning bg-status-warning/10 focus:ring-status-warning/50 animate-field-glow' : 'border-secondary focus:ring-accent focus:border-accent'">
+                      @if (aiSuggestedAddressFields()['bairro']) {
+                          <p class="text-xs text-label mt-1 animate-fade-in-up">Preenchido via IA</p>
+                      }
+                  </div>
+                  <!-- Cidade -->
+                  <div class="md:col-span-1">
+                      <label class="text-sm text-label flex items-center gap-1.5">Cidade
+                          @if (aiSuggestedAddressFields()['cidade']) {
+                              <span class="flex items-center" title="Sugestão da IA">
+                                  <svg width="14" height="14" viewBox="0 0 24 24" class="inline text-status-warning"><path fill="currentColor" d="M17.33 2c-1.53 0-2.81.93-3.33 2.22-.52-1.29-1.8-2.22-3.33-2.22-1.95 0-3.67 1.83-3.67 4.17 0 1.22.42 2.36 1.25 3.25-.89.86-1.42 2.05-1.42 3.42 0 2.33 1.92 4.25 4.25 4.25.78 0 1.5-.23 2.12-.62.62.39 1.34.62 2.12.62 2.33 0 4.25-1.92 4.25-4.25 0-1.37-.53-2.56-1.42-3.42.83-.89 1.25-2.03 1.25-3.25C21 3.83 19.28 2 17.33 2zM12 18.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                              </span>
+                          }
+                      </label>
+                      <input type="text" [value]="cidade()" (input)="cidade.set($any($event.target).value)"
+                          class="w-full mt-1 p-2 bg-secondary-light border rounded-md text-sm transition-colors focus:outline-none focus:ring-2"
+                          [class]="aiSuggestedAddressFields()['cidade'] ? 'border-status-warning bg-status-warning/10 focus:ring-status-warning/50 animate-field-glow' : 'border-secondary focus:ring-accent focus:border-accent'">
+                      @if (aiSuggestedAddressFields()['cidade']) {
+                          <p class="text-xs text-label mt-1 animate-fade-in-up">Preenchido via IA</p>
+                      }
+                  </div>
+                  <!-- Estado -->
+                  <div class="md:col-span-1">
+                      <label class="text-sm text-label flex items-center gap-1.5">Estado
+                          @if (aiSuggestedAddressFields()['estado']) {
+                              <span class="flex items-center" title="Sugestão da IA">
+                                  <svg width="14" height="14" viewBox="0 0 24 24" class="inline text-status-warning"><path fill="currentColor" d="M17.33 2c-1.53 0-2.81.93-3.33 2.22-.52-1.29-1.8-2.22-3.33-2.22-1.95 0-3.67 1.83-3.67 4.17 0 1.22.42 2.36 1.25 3.25-.89.86-1.42 2.05-1.42 3.42 0 2.33 1.92 4.25 4.25 4.25.78 0 1.5-.23 2.12-.62.62.39 1.34.62 2.12.62 2.33 0 4.25-1.92 4.25-4.25 0-1.37-.53-2.56-1.42-3.42.83-.89 1.25-2.03 1.25-3.25C21 3.83 19.28 2 17.33 2zM12 18.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                              </span>
+                          }
+                      </label>
+                      <input type="text" [value]="estado()" (input)="estado.set($any($event.target).value)"
+                          class="w-full mt-1 p-2 bg-secondary-light border rounded-md text-sm transition-colors focus:outline-none focus:ring-2"
+                          [class]="aiSuggestedAddressFields()['estado'] ? 'border-status-warning bg-status-warning/10 focus:ring-status-warning/50 animate-field-glow' : 'border-secondary focus:ring-accent focus:border-accent'">
+                      @if (aiSuggestedAddressFields()['estado']) {
+                          <p class="text-xs text-label mt-1 animate-fade-in-up">Preenchido via IA</p>
+                      }
+                  </div>
+              </div>
+            </fieldset>
+          </div>
+
+          <div class="bg-secondary-light p-6 rounded-lg border border-secondary">
+              <fieldset [disabled]="isAnalyzingAddress()">
+                <h3 class="font-bold text-lg mb-4">Contato</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                    <div><label class="text-sm text-label">Telefone Residencial</label><input type="text" placeholder="(00) 00000-0000" [value]="telefoneResidencial()" (input)="handleTelefoneResidencialInput($event)" class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm"></div>
+                    <div><label class="text-sm text-label">Celular</label><input type="text" placeholder="(00) 00000-0000" [value]="celular()" (input)="handleCelularInput($event)" class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm"></div>
+                    <div>
+                        <label class="text-sm text-label">E-mail</label>
+                        <input type="email" [value]="email()" (input)="email.set($any($event.target).value)" class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm">
+                    </div>
+                    <div>
+                        <label class="text-sm text-label">Confirme seu e-mail</label>
+                        <input type="email" [value]="confirmeEmail()" (input)="confirmeEmail.set($any($event.target).value)"
+                            class="w-full mt-1 p-2 bg-secondary-light border rounded-md text-sm"
+                            [class]="emailMismatch() ? 'border-status-error focus:ring-status-error' : 'border-secondary focus:ring-accent focus:border-accent'">
+                        @if (emailMismatch()) {
+                            <p class="text-xs text-status-error mt-1">Os e-mails não correspondem.</p>
+                        }
+                    </div>
+                </div>
+              </fieldset>
+          </div>
+        }
+        @case(3) {
+          <div class="bg-secondary-light p-6 rounded-lg border border-secondary">
+             <h3 class="font-bold text-lg mb-4">Informações Profissionais</h3>
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <div><label class="text-sm text-label">Categoria Profissional</label><select class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm"><option>Selecione...</option></select></div>
+                <div><label class="text-sm text-label">Ocupação Profissional</label><input type="text" class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm"></div>
+                <div><label class="text-sm text-label">Empresa onde trabalha</label><input type="text" class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm"></div>
+                <div><label class="text-sm text-label">Tempo de Ocupação (anos)</label><input type="number" class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm"></div>
+                <div class="md:col-span-2"><label class="flex items-center text-sm text-label"><input type="checkbox" class="mr-2"> Declaro ser sócio/proprietário da empresa</label></div>
+                <div class="md:col-span-2"><label class="text-sm text-label">CNPJ da Empresa</label><input type="text" class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm"></div>
+                <div class="md:col-span-2"><label class="flex items-center text-sm text-label"><input type="checkbox" class="mr-2"> Sou pessoa politicamente exposta</label></div>
+             </div>
+          </div>
+           <div class="bg-secondary-light p-6 rounded-lg border border-secondary">
+             <h3 class="font-bold text-lg mb-4">Informações Financeiras</h3>
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <div><label class="text-sm text-label">Classificação do Investidor</label><select class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm"><option>Geral</option></select></div>
+                <div><label class="text-sm text-label">Patrimônio Líquido (R$)</label><input type="text" value="R$ 0,00" class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm"></div>
+                <div><label class="text-sm text-label">Rendimento Mensal (R$)</label><input type="text" value="R$ 0,00" class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm"></div>
+                <div><label class="text-sm text-label">Porcentagem Mensal para Investir (%)</label><input type="text" class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm"></div>
+                <div><label class="text-sm text-label">Patrimônio Líquido em Investimentos (R$)</label><input type="text" value="R$ 0,00" class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm"></div>
+                <div><label class="text-sm text-label">Origem do Patrimônio</label><input type="text" class="w-full mt-1 p-2 bg-secondary-light border border-secondary rounded-md text-sm"></div>
+             </div>
+           </div>
+        }
+        @case(4) {
+          <div class="bg-secondary-light p-6 rounded-lg border border-secondary">
+            <h3 class="font-bold text-lg mb-4">Perfil de Investidor (Suitability)</h3>
+            <div class="space-y-6 text-sm">
+                <div><p class="font-semibold mb-2">Qual o seu principal objetivo ao investir seu patrimônio conosco?</p><div class="space-y-1"><label class="flex items-center"><input type="radio" name="q1" class="mr-2"> Preservar meu patrimônio assumindo um menor risco</label><label class="flex items-center"><input type="radio" name="q1" class="mr-2"> Uma combinação entre a preservação do patrimônio e sua valorização</label><label class="flex items-center"><input type="radio" name="q1" class="mr-2"> Maximizar o potencial de ganho assumindo um maior risco</label></div></div>
+                <div><p class="font-semibold mb-2">Por quanto tempo pretende deixar seus recursos investidos conosco?</p><div class="space-y-1"><label class="flex items-center"><input type="radio" name="q2" class="mr-2"> Até 1 ano</label><label class="flex items-center"><input type="radio" name="q2" class="mr-2"> De 1 a 3 anos</label><label class="flex items-center"><input type="radio" name="q2" class="mr-2"> Mais de 3 anos</label></div></div>
+                <div><p class="font-semibold mb-2">Em relação aos seus investimentos no futuro, qual a necessidade dos recursos aplicados?</p><div class="space-y-1"><label class="flex items-center"><input type="radio" name="q3" class="mr-2"> Prevejo deixar como complemento de renda</label><label class="flex items-center"><input type="radio" name="q3" class="mr-2"> Eventualmente posso precisar utilizar uma parte dele</label><label class="flex items-center"><input type="radio" name="q3" class="mr-2"> Não tenho necessidade imediata deste dinheiro</label></div></div>
+                <div><p class="font-semibold mb-2">Qual percentual da sua renda você investe regularmente?</p><div class="space-y-1"><label class="flex items-center"><input type="radio" name="q4" class="mr-2"> Até 10%</label><label class="flex items-center"><input type="radio" name="q4" class="mr-2"> De 11% a 25%</label><label class="flex items-center"><input type="radio" name="q4" class="mr-2"> Acima de 25%</label></div></div>
+                <div><p class="font-semibold mb-2">Em um cenário de revés do mercado, supondo que seus investimentos percam 10% do valor aplicado. Nesse caso, o que você faria?</p><div class="space-y-1"><label class="flex items-center"><input type="radio" name="q5" class="mr-2"> Não sei o que faria</label><label class="flex items-center"><input type="radio" name="q5" class="mr-2"> Venderia toda a posição</label><label class="flex items-center"><input type="radio" name="q5" class="mr-2"> Manteria a posição</label><label class="flex items-center"><input type="radio" name="q5" class="mr-2"> Aumentaria a posição</label></div></div>
+                <div><p class="font-semibold mb-2">Quais dos investimentos abaixo você investiu nos últimos 5 anos ou tem conhecimento? (múltipla escolha)</p><div class="space-y-1"><label class="flex items-center"><input type="checkbox" class="mr-2"> Poupança (FGTS), CDB, LCI/LCA, R</label><label class="flex items-center"><input type="checkbox" class="mr-2"> Fundos de Renda Fixa, Debêntures, Fundos Imobiliários, COEs</label><label class="flex items-center"><input type="checkbox" class="mr-2"> Fundos de Ações, Ações, Fundos Multimercados, Câmbio</label></div></div>
+            </div>
+          </div>
+        }
+        @case(5) {
+          <div class="bg-secondary-light p-6 rounded-lg border border-secondary">
+            <h3 class="font-bold text-lg mb-4">Proposta de Alocação</h3>
+            <div class="space-y-4">
+              <p class="text-sm font-semibold">O cliente já possui investimentos ou está começando com um valor líquido?</p>
+              <div>
+                <label class="flex items-center text-sm cursor-pointer">
+                  <input type="radio" name="allocation-type" class="mr-2" (change)="allocationType.set('reallocation')">
+                  Já possui investimentos (Proposta de Realocação)
+                </label>
+              </div>
+              <div>
+                <label class="flex items-center text-sm cursor-pointer">
+                  <input type="radio" name="allocation-type" class="mr-2" (change)="allocationType.set('new')">
+                  Valor líquido para investir (Proposta de Alocação)
+                </label>
+              </div>
+            </div>
+            
+            @if (allocationType() === 'reallocation') {
+              <div class="mt-6 pt-6 border-t border-secondary">
+                <input #portfolioFileInput type="file" class="hidden" accept="image/*,application/pdf" (change)="onPortfolioFileSelected($event)">
+                <h4 class="font-semibold mb-2">Carteira Atual do Cliente</h4>
+                <p class="text-sm text-label mb-4">Anexe um documento (imagem ou PDF) com o portfólio atual do cliente para análise.</p>
+                
+                @if (portfolioFile(); as file) {
+                  <div class="flex items-center justify-between p-3 bg-background border border-secondary rounded-lg">
+                    <div class="flex items-center gap-3">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-label"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                      <span class="text-sm font-medium">{{ file.name }}</span>
+                    </div>
+                    <button (click)="removePortfolioFile()" class="p-1 rounded-full text-label hover:bg-secondary hover:text-foreground transition-colors">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                  </div>
+                } @else {
+                  <div (click)="portfolioFileInput.click()" class="border-2 border-dashed border-secondary rounded-lg p-8 text-center cursor-pointer hover:bg-background transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="mx-auto text-label mb-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                    <p class="text-sm font-semibold">Clique para fazer upload</p>
+                    <p class="text-xs text-label">ou arraste e solte o arquivo</p>
+                  </div>
+                }
+              </div>
+            }
+
+            <div class="mt-6 pt-6 border-t border-secondary relative">
+              <h4 class="font-semibold mb-2">Objetivos de Investimento e Informações Complementares</h4>
+              <textarea 
+                class="w-full mt-1 p-2 pr-12 bg-secondary-light border border-secondary rounded-md text-sm focus:ring-accent focus:border-accent" 
+                rows="4" 
+                placeholder="Descreva aqui os objetivos do cliente, perfil, horizonte de tempo, necessidade de liquidez, etc. Você também pode usar o microfone para ditar."
+                [value]="objectives()"
+                (input)="objectives.set($any($event.target).value)"></textarea>
+
+              <button 
+                (click)="toggleRecording()" 
+                [disabled]="isTranscribing()"
+                class="absolute right-3 top-[76px] p-2 rounded-full transition-colors duration-200 disabled:opacity-50 disabled:cursor-wait flex items-center justify-center w-9 h-9"
+                [class]="isRecording() ? 'bg-status-error/20 text-status-error' : 'hover:bg-secondary text-label'">
+                
+                @if (isTranscribing()) {
+                  <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                } @else if (isRecording()) {
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="animate-pulse"><path d="M6 6h12v12H6z"/></svg>
+                } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line>
+                  </svg>
+                }
+              </button>
+            </div>
+          </div>
+        }
+        @case(6) {
+          <div class="bg-secondary-light p-6 rounded-lg border border-secondary">
+            <div class="text-center py-16">
+              <h3 class="text-2xl font-bold">Assinatura do Contrato</h3>
+              <p class="text-label mt-2 max-w-md mx-auto">O contrato de prestação de serviço está pronto. O cliente pode assinar digitalmente através do link gerado ou você pode simular a assinatura abaixo.</p>
+              <div class="flex max-w-sm mx-auto mt-6">
+                 <input type="text" readonly value="https://portal.clienthub.com/contrato/business/e3c4..." class="w-full p-2 bg-secondary border-y border-l border-secondary rounded-l-md text-sm text-label">
+                 <button class="p-2 bg-secondary border-y border-r border-secondary rounded-r-md hover:bg-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                 </button>
+              </div>
+              <div class="text-center my-4 text-label text-sm">Ou, para simular o processo</div>
+              <button class="px-5 py-2.5 bg-status-success text-white text-sm font-bold rounded-md hover:brightness-95 transition-all">
+                Assinar Digitalmente (Simulação)
+              </button>
+            </div>
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Navigation Footer -->
+    <div class="mt-12 pt-6 border-t border-secondary flex justify-between items-center">
+      @if (currentStep() > 1) {
+        <button (click)="prevStep()" class="px-4 py-2 bg-secondary-light border border-secondary text-foreground text-sm font-medium rounded-md hover:bg-secondary transition-colors">
+          Voltar
+        </button>
+      } @else {
+        <div></div> <!-- Spacer -->
+      }
+      
+      @if (currentStep() < steps.length) {
+        <button (click)="nextStep()" class="px-4 py-2 bg-foreground text-background text-sm font-medium rounded-md hover:brightness-95 active:brightness-90 transition-all">
+          Avançar
+        </button>
+      } @else {
+        <button (click)="finishRegistration()" class="px-4 py-2 bg-foreground text-background text-sm font-medium rounded-md hover:brightness-95 active:brightness-90 transition-all">
+          Concluir e ir para Clientes
+        </button>
+      }
+    </div>
+  </div>
+</div>
+<style>
+  @keyframes field-glow {
+    0% {
+      box-shadow: 0 0 0 0px theme('colors.status-warning / 50%');
+    }
+    50% {
+      box-shadow: 0 0 0 4px theme('colors.status-warning / 0%');
+    }
+    100% {
+      box-shadow: 0 0 0 0px theme('colors.status-warning / 0%');
+    }
+  }
+  .animate-field-glow {
+    animation: field-glow 1.2s ease-out;
+  }
+  
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-fade-in-up {
+    animation: fade-in-up 0.3s ease-out forwards;
+  }
+</style>

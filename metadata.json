@@ -1,0 +1,7 @@
+{
+  "name": "ClientHub Dashboard",
+  "description": "A dashboard for managing client onboarding and contracts, providing an overview of client status and key metrics.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
